@@ -1,0 +1,11 @@
+{"level":"info","message":"{\"message\":\"Сервер Этапа 9 запущен на порту 5003\"}","timestamp":"2026-05-28T16:35:17.405Z"}
+{"level":"info","message":"{\"message\":\"--- Запуск сквозного сценария создания задачи ---\",\"body\":{\"title\":\"bad_task\",\"userId\":1}}","timestamp":"2026-05-28T16:35:45.811Z"}
+{"level":"info","message":"{\"message\":\"Шаг 1: Валидация лимитов задач пройдена\"}","timestamp":"2026-05-28T16:35:45.812Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 1 из 3...\"}","timestamp":"2026-05-28T16:35:45.812Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 1 провалилась: getaddrinfo EAI_AGAIN invalid-failed-route\"}","timestamp":"2026-05-28T16:35:50.833Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 2 из 3...\"}","timestamp":"2026-05-28T16:35:51.834Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 2 провалилась: getaddrinfo EAI_AGAIN invalid-failed-route\"}","timestamp":"2026-05-28T16:35:56.839Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 3 из 3...\"}","timestamp":"2026-05-28T16:35:57.841Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 3 провалилась: getaddrinfo EAI_AGAIN invalid-failed-route\"}","timestamp":"2026-05-28T16:36:02.848Z"}
+{"level":"error","message":"{\"message\":\"[CIRCUIT BREAKER] Критический уровень сбоев! Предохранитель ОТКРЫТ на 30 сек.\"}","timestamp":"2026-05-28T16:36:02.848Z"}
+{"level":"error","message":"{\"message\":\"💥 Критический сбой! Запуск компенсации Саги.\",\"error\":\"getaddrinfo EAI_AGAIN invalid-failed-route\"}","timestamp":"2026-05-28T16:36:02.848Z"}

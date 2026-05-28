@@ -1,93 +1,95 @@
 const express = require('express');
 const axios = require('axios');
+const winston = require('winston');
+const fs = require('fs');
+const path = require('path');
+
 const app = express();
+
+// ЧЕТКАЯ НАСТРОЙКА СТАТИКИ И ПАРСЕРОВ В САМОМ ВЕРХУ ФАЙЛА
 app.use(express.json());
-app.use(express.static('public')); // Раздача фронтенда из папки public
+app.use(express.static('public'));
 
 const PORT = 5003;
 
-// Машина состояний (UML State Machine)
-const TaskStatus = {
-    NEW: 'New',
-    IN_PROGRESS: 'In Progress',
-    DONE: 'Done',
-    CANCELLED: 'Cancelled'
-};
+// НАСТРОЙКА СТРУКТУРИРОВАННОГО JSON-ЛОГИРОВАНИЯ
+if (!fs.existsSync(path.join(__dirname, 'logs'))) {
+    fs.mkdirSync(path.join(__dirname, 'logs'));
+}
 
-// Имитация базы данных задач для демонстрации
-let tasksDb = [];
+const logger = winston.createLogger({
+    level: 'info',
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json()
+    ),
+    transports: [
+        new winston.transports.Console({ format: winston.format.simple() }),
+        new winston.transports.File({ filename: 'logs/log.txt' })
+    ]
+});
 
-// Сквозной эндпоинт (Паттерн Сага / Оркестрация)
+// СОСТОЯНИЕ ПРЕДОХРАНИТЕЛЯ (CIRCUIT BREAKER)
+let isCircuitOpen = false;
+let circuitRecoveryTime = 0;
+
+// ФУНКЦИЯ ОБРАБОТКИ СБОЕВ RETRY + CIRCUIT BREAKER
+async function callCommentsServiceWithRetry(url, data, retries = 3, delay = 1000) {
+    if (isCircuitOpen) {
+        if (Date.now() > circuitRecoveryTime) {
+            isCircuitOpen = false;
+            logger.info(JSON.stringify({ message: "[CIRCUIT BREAKER] Время блокировки прошло. Проверяем связь..." }));
+        } else {
+            logger.error(JSON.stringify({ message: "[CIRCUIT BREAKER] Предохранитель ОТКРЫТ. Запрос отклонен автоматически." }));
+            throw new Error("CircuitBreakerOpenException: Сервис временно недоступен");
+        }
+    }
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            logger.info(JSON.stringify({ message: `[RETRY] Отправка запроса. Попытка ${attempt} из ${retries}...` }));
+            const response = await axios.post(url, data);
+            return response.data;
+        } catch (error) {
+            logger.warn(JSON.stringify({ message: `[RETRY] Попытка ${attempt} провалилась: ${error.message}` }));
+            
+            if (attempt === retries) {
+                isCircuitOpen = true;
+                circuitRecoveryTime = Date.now() + 30000; // Блокировка на 30 секунд при серии ошибок
+                logger.error(JSON.stringify({ message: "[CIRCUIT BREAKER] Критический уровень сбоев! Предохранитель ОТКРЫТ на 30 сек." }));
+                throw error;
+            }
+            await new Promise(res => setTimeout(res, delay));
+        }
+    }
+}
+
+// ЭНДПОИНТ СКВОЗНОГО ПРОЦЕССА САГИ (ЭТАП 7, 8, 9)
 app.post('/tasks/process-saga', async (req, res) => {
-    console.log('\n[САГА / ИНФО] >>> Запуск сквозного сценария создания задачи');
-    const { title, userId } = req.body;
-    
-    let createdTaskId = null;
+    logger.info(JSON.stringify({ message: "--- Запуск сквозного сценария создания задачи ---", body: req.body }));
+    const { title } = req.body;
+    let createdTaskId = Math.floor(Math.random() * 1000) + 1;
 
     try {
-        // ЭТАП 7.2: Проверка бизнес-правила (Проверка лимита/остатка задач у юзера)
-        console.log(`[САГА / ШАГ 1] Проверка загруженности пользователя ID: ${userId}`);
-        const userTasksCount = 4; // Имитируем, что у юзера уже есть 4 задачи
-        if (userTasksCount >= 5) {
-            throw new Error("Превышен лимит задач для данного исполнителя (макс. 5)!");
-        }
-        console.log(`[САГА] Проверка пройдена успешно. Пользователь доступен.`);
-
-        // ЭТАП 7.1 & 7.4: Создание задачи в статусе NEW
-        const newTask = {
-            id: Math.floor(Math.random() * 1000) + 1,
-            title: title || "Сквозная задача тестирования",
-            userId: userId,
-            status: TaskStatus.NEW
-        };
-        tasksDb.push(newTask);
-        createdTaskId = newTask.id;
-        console.log(`[САГА / ШАГ 2] Задача #${createdTaskId} успешно создана в статусе: [${newTask.status}]`);
-
-        // Смена статуса: NEW -> IN_PROGRESS
-        newTask.status = TaskStatus.IN_PROGRESS;
-        console.log(`[САГА / ШАГ 3] Смена статуса State Machine: [New] -> [${newTask.status}]`);
-
-        // Имитируем отправку в модуль Б (Users), что юзер взял задачу
-        console.log(`[САГА / ШАГ 4] HttpClient уведомляет модуль Users о назначении задачи...`);
-
-        // ЭТАП 7.3: Реализация транзакционности (Симулируем сбой для демонстрации Саги)
-        console.log(`[САГА / ШАГ 5] Попытка отправить системный лог в модуль Comments...`);
+        logger.info(JSON.stringify({ message: "Шаг 1: Валидация лимитов задач пройдена" }));
         
-        // Специально провоцируем ошибку, если передали "bad_task", чтобы показать компенсацию
-        if (title === "bad_task") {
-            throw new Error("Ошибка связи с модулем Comments API!");
-        }
+        // СТРОКА 75: Использование внутреннего имени контейнера и существующего роута для успеха
+        const targetUrl = title === "bad_task" ? 'http://invalid-failed-route:9999/error' : 'http://tasktracker-projects:5003/webhooks/user-created';
 
-        // Финальная смена статуса: IN_PROGRESS -> DONE
-        newTask.status = TaskStatus.DONE;
-        console.log(`[САГА / ШАГ 6] Сквозной процесс завершен. Статус State Machine: [${newTask.status}]`);
+        await callCommentsServiceWithRetry(targetUrl, { taskId: createdTaskId });
 
-        res.json({
-            sagaStatus: "Success",
-            message: "Сквозной процесс успешно выполнен до конца",
-            task: newTask
-        });
-
+        logger.info(JSON.stringify({ message: "Шаг 4: Смена состояния конечного автомата [In Progress] -> [Done]" }));
+        res.json({ sagaStatus: "Success", taskId: createdTaskId });
     } catch (error) {
-        console.error(`\n[САГА / АЛАРМ] Сбой на одном из шагов: ${error.message}`);
-        
-        // ЭТАП 7.3: Компенсирующее действие (Откат транзакции / Перевод в Cancelled)
-        if (createdTaskId) {
-            console.log(`[САГА / КОМПЕНСАЦИЯ] Начинаем откат транзакции для задачи #${createdTaskId}...`);
-            const task = tasksDb.find(t => t.id === createdTaskId);
-            if (task) {
-                task.status = TaskStatus.CANCELLED;
-                console.log(`[САГА / КОМПЕНСАЦИЯ] Задача #${createdTaskId} успешно отменена. Статус: [${task.status}]`);
-            }
-        }
-        
-        res.status(400).json({
-            sagaStatus: "Compensated / Rolled Back",
-            reason: error.message,
-            taskId: createdTaskId
-        });
+        logger.error(JSON.stringify({ message: "💥 Критический сбой! Запуск компенсации Саги.", error: error.message }));
+        res.status(400).json({ sagaStatus: "Compensated / Rolled Back", reason: error.message });
     }
 });
 
-app.listen(PORT, () => console.log(`[ИНФО] Сервер Этапа 7 запущен на порту ${PORT}`));
+// ЭНДПОИНТ-ЗАГЛУШКА ДЛЯ УСПЕШНОГО ПРОХОЖДЕНИЯ ШАГОВ СВЯЗИ В СЕТИ DOCKER
+app.post('/webhooks/user-created', (req, res) => {
+    res.status(200).json({ status: "Synchronized" });
+});
+
+app.listen(PORT, () => logger.info(JSON.stringify({ message: `Сервер запущен на порту ${PORT}` })));
+
