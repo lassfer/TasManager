@@ -1,0 +1,34 @@
+{"level":"info","message":"{\"message\":\"--- Запуск сквозного сценария создания задачи ---\",\"body\":{\"title\":\"Реализовать этап 10 лабораторной\",\"userId\":1}}","timestamp":"2026-05-28T17:07:29.632Z"}
+{"level":"info","message":"{\"message\":\"Шаг 1: Валидация лимитов задач пройдена\"}","timestamp":"2026-05-28T17:07:29.640Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 1 из 3...\"}","timestamp":"2026-05-28T17:07:29.643Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 1 провалилась: getaddrinfo ENOTFOUND tasktracker-projects\"}","timestamp":"2026-05-28T17:07:30.974Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 2 из 3...\"}","timestamp":"2026-05-28T17:07:31.984Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 2 провалилась: getaddrinfo ENOTFOUND tasktracker-projects\"}","timestamp":"2026-05-28T17:07:33.246Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 3 из 3...\"}","timestamp":"2026-05-28T17:07:34.259Z"}
+{"level":"info","message":"{\"message\":\"--- Запуск сквозного сценария создания задачи ---\",\"body\":{\"title\":\"bad_task\",\"userId\":1}}","timestamp":"2026-05-28T17:07:34.606Z"}
+{"level":"info","message":"{\"message\":\"Шаг 1: Валидация лимитов задач пройдена\"}","timestamp":"2026-05-28T17:07:34.609Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 1 из 3...\"}","timestamp":"2026-05-28T17:07:34.610Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 3 провалилась: getaddrinfo ENOTFOUND tasktracker-projects\"}","timestamp":"2026-05-28T17:07:35.523Z"}
+{"level":"error","message":"{\"message\":\"[CIRCUIT BREAKER] Критический уровень сбоев! Предохранитель ОТКРЫТ на 30 сек.\"}","timestamp":"2026-05-28T17:07:35.525Z"}
+{"level":"error","message":"{\"message\":\"💥 Критический сбой! Запуск компенсации Саги.\",\"error\":\"getaddrinfo ENOTFOUND tasktracker-projects\"}","timestamp":"2026-05-28T17:07:35.526Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 1 провалилась: getaddrinfo ENOTFOUND invalid-failed-route\"}","timestamp":"2026-05-28T17:07:35.864Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 2 из 3...\"}","timestamp":"2026-05-28T17:07:36.867Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 2 провалилась: getaddrinfo ENOTFOUND invalid-failed-route\"}","timestamp":"2026-05-28T17:07:38.131Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 3 из 3...\"}","timestamp":"2026-05-28T17:07:39.138Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 3 провалилась: getaddrinfo ENOTFOUND invalid-failed-route\"}","timestamp":"2026-05-28T17:07:40.384Z"}
+{"level":"error","message":"{\"message\":\"[CIRCUIT BREAKER] Критический уровень сбоев! Предохранитель ОТКРЫТ на 30 сек.\"}","timestamp":"2026-05-28T17:07:40.384Z"}
+{"level":"error","message":"{\"message\":\"💥 Критический сбой! Запуск компенсации Саги.\",\"error\":\"getaddrinfo ENOTFOUND invalid-failed-route\"}","timestamp":"2026-05-28T17:07:40.384Z"}
+{"level":"info","message":"{\"message\":\"--- Запуск сквозного сценария создания задачи ---\",\"body\":{\"title\":\"Реализовать этап 10 лабораторной\",\"userId\":1}}","timestamp":"2026-05-28T17:13:39.275Z"}
+{"level":"info","message":"{\"message\":\"Шаг 1: Валидация лимитов задач пройдена\"}","timestamp":"2026-05-28T17:13:39.284Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 1 из 3...\"}","timestamp":"2026-05-28T17:13:39.286Z"}
+{"level":"info","message":"{\"message\":\"Шаг 4: Смена состояния конечного автомата [In Progress] -> [Done]\"}","timestamp":"2026-05-28T17:13:39.289Z"}
+{"level":"info","message":"{\"message\":\"--- Запуск сквозного сценария создания задачи ---\",\"body\":{\"title\":\"bad_task\",\"userId\":1}}","timestamp":"2026-05-28T17:13:39.311Z"}
+{"level":"info","message":"{\"message\":\"Шаг 1: Валидация лимитов задач пройдена\"}","timestamp":"2026-05-28T17:13:39.314Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 1 из 3...\"}","timestamp":"2026-05-28T17:13:39.316Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 1 провалилась: Network Error\"}","timestamp":"2026-05-28T17:13:39.318Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 2 из 3...\"}","timestamp":"2026-05-28T17:13:40.323Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 2 провалилась: Network Error\"}","timestamp":"2026-05-28T17:13:40.325Z"}
+{"level":"info","message":"{\"message\":\"[RETRY] Отправка запроса. Попытка 3 из 3...\"}","timestamp":"2026-05-28T17:13:41.335Z"}
+{"level":"warn","message":"{\"message\":\"[RETRY] Попытка 3 провалилась: Network Error\"}","timestamp":"2026-05-28T17:13:41.338Z"}
+{"level":"error","message":"{\"message\":\"[CIRCUIT BREAKER] Критический уровень сбоев! Предохранитель ОТКРЫТ на 30 сек.\"}","timestamp":"2026-05-28T17:13:41.339Z"}
+{"level":"error","message":"{\"message\":\"💥 Критический сбой! Запуск компенсации Саги.\",\"error\":\"Network Error\"}","timestamp":"2026-05-28T17:13:41.340Z"}

@@ -3,165 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Tracker Pro UI</title>
-    <!-- Шрифты и иконки -->
+    <title>Система учета задач — Task Tracker</title>
     <link href="https://googleapis.com" rel="stylesheet">
     <link rel="stylesheet" href="https://jsdelivr.net">
     <link href="https://jsdelivr.net" rel="stylesheet">
-    
+    <link rel="stylesheet" href="styles.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0b0f19;
-            color: #f3f4f6;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: start;
         }
-        .premium-card {
-            background: #111827;
-            border: 1px solid #1f2937;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            width: 100%;
-            max-width: 550px; /* Жестко ограничиваем ширину, чтобы не растягивалось на весь экран */
-            padding: 30px;
+        @media (max-width: 1200px) {
+            .grid-layout { grid-template-columns: 1fr; }
         }
-        .form-control, .form-select {
-            background-color: #1f2937;
+        /* Стили для интерактивных счетчиков */
+        .stat-box {
+            background: #1f2937;
             border: 1px solid #374151;
-            color: #ffffff;
-            border-radius: 8px;
-            padding: 10px 12px;
-        }
-        .form-control:focus, .form-select:focus {
-            background-color: #1f2937;
-            border-color: #6366f1;
-            color: #ffffff;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-        }
-        .btn-gradient {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            border: none;
-            color: white;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
             font-weight: 600;
-            border-radius: 8px;
-            padding: 14px;
-            transition: all 0.2s ease;
-        }
-        .btn-gradient:hover {
-            opacity: 0.95;
-            transform: translateY(-1px);
-        }
-        .status-badge {
-            border-radius: 12px;
-            padding: 16px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid transparent;
-        }
-        .status-idle { background: #1f2937; border-color: #374151; color: #9ca3af; }
-        .status-wait { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #fbbf24; }
-        .status-success { background: rgba(16, 185, 129, 0.1); border-color: #10b981; color: #34d399; }
-        .status-fail { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #f87171; }
-        pre {
-            background-color: #030712 !important;
-            border: 1px solid #1f2937;
-            border-radius: 8px;
-            max-height: 200px;
-            font-size: 13px;
         }
     </style>
 </head>
 <body>
 
-    <div class="premium-card">
-        <!-- Шапка панели -->
-        <div class="text-center mb-4">
-            <div class="d-inline-flex p-3 rounded-circle mb-3" style="background: rgba(99, 102, 241, 0.1);">
-                <i class="bi bi-cpu" style="font-size: 2rem; color: #818cf8;"></i>
-            </div>
-            <h3 class="fw-bold text-white mb-1">Task Tracker Pro</h3>
-            <p class="text-muted small mb-0">Интеграционный слой управления оркестрацией (Saga)</p>
-        </div>
-
-        <!-- Форма команд -->
-        <form id="taskForm" class="mb-4">
-            <div class="mb-3">
-                <label class="form-label text-secondary small fw-semibold">НАЗВАНИЕ НОВОЙ ЗАДАЧИ</label>
-                <input type="text" class="form-control" id="taskTitle" value="Реализовать этап 8 лабораторной" required>
-            </div>
-            <div class="mb-4">
-                <label class="form-label text-secondary small fw-semibold">РЕЖИМ СКВОЗНОГО ПРОЦЕССА</label>
-                <select class="form-select" id="scenarioType">
-                    <option value="success">💎 Успешный сценарий (New → In Progress → Done)</option>
-                    <option value="fail">⚠️ Сбойный сценарий (Вызов отката Саги / Cancelled)</option>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-gradient w-100">
-                <i class="bi bi-play-fill me-1"></i> Запустить оркестрацию
-            </button>
-        </form>
-
-        <!-- Мониторинг статуса -->
-        <div class="mb-4">
-            <label class="form-label text-secondary small fw-semibold mb-2">МОНИТОРИНГ ИНТЕГРАЦИИ</label>
-            <div id="statusAlert" class="status-badge status-idle">
-                <i class="bi bi-hourglass-split"></i>
-                <span>Система готова к приему команд...</span>
+    <div class="container dashboard-container">
+        <!-- Главный заголовок -->
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <div class="d-inline-flex p-3 rounded-circle mb-3" style="background: rgba(99, 102, 241, 0.1);">
+                    <i class="bi bi-kanban" style="font-size: 2rem; color: #818cf8;"></i>
+                </div>
+                <h2 class="fw-bold text-white mb-1" style="letter-spacing: 0.03em;">СИСТЕМА УЧЕТА ЗАДАЧ</h2>
+                <p class="text-secondary small" style="letter-spacing: 0.01em;">Контроль жизненного цикла проекта: Проекты → Задачи → Исполнители → Комментарии</p>
             </div>
         </div>
 
-        <!-- Вывод JSON -->
-        <div id="responseBlock" class="d-none">
-            <label class="form-label text-secondary small fw-semibold mb-2">ОТВЕТ СЕРВЕРА (JSON RESULT)</label>
-            <pre id="jsonResult" class="text-info p-3 m-0 rounded overflow-auto" style="color: #38bdf8 !important;"></pre>
+        <!-- ДВУХКОЛОНОЧНЫЙ ИНТЕРФЕЙС -->
+        <div class="grid-layout">
+            
+            <!-- ЛЕВАЯ СТОРОНА: Форма добавления задачи -->
+            <div class="dashboard-block h-100 m-0">
+                <h5 class="fw-bold text-white mb-4">
+                    <i class="bi bi-plus-square-fill me-2" style="color:#6366f1;"></i> Добавление новой задачи
+                </h5>
+                
+                <form id="taskForm" class="mb-4">
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-semibold mb-2">НАЗВАНИЕ ЗАДАЧИ</label>
+                        <input type="text" class="form-control" id="taskTitle" value="Разработать модуль авторизации" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-semibold mb-2">ОПИСАНИЕ / ПЕРВЫЙ КОММЕНТАРИЙ</label>
+                        <textarea class="form-control" id="taskDesc" rows="2" required>Интегрировать безопасность и протестировать маршруты</textarea>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-secondary small fw-semibold mb-2">ВЫБЕРИТЕ ПРОЕКТ</label>
+                            <select class="form-select" id="taskProject">
+                                <option value="CRM Система">CRM Система (Alpha)</option>
+                                <option value="Мобильное приложение">Мобильное приложение (Beta)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-secondary small fw-semibold mb-2">НАЗНАЧИТЬ ИСПОЛНИТЕЛЯ</label>
+                            <select class="form-select" id="taskUser">
+                                <option value="1">Иван_Разработчик (ID: 1)</option>
+                                <option value="42">Petr_QA_Engineer (ID: 42)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-semibold mb-2">ПРОВЕРКА УСТОЙЧИВОСТИ СИСТЕМЫ К СБОЯМ</label>
+                        <select class="form-select" id="scenarioType">
+                            <option value="success">💎 Обычный режим (Успешное сохранение во все базы)</option>
+                            <option value="fail">⚠️ Режим сбоя сети (Автоматическая отмена изменений при ошибке)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-gradient w-100 mb-4">
+                        <i class="bi bi-play-fill me-1"></i> Создать и распределить задачу
+                    </button>
+                </form>
+
+                <div>
+                    <label class="form-label text-secondary small fw-semibold mb-2">МОНИТОР ИНТЕГРАЦИИ (ЖУРНАЛ СЕРВЕРА)</label>
+                    <div id="statusAlert" class="status-badge status-idle">
+                        <i class="bi bi-activity"></i>
+                        <span>Ожидание действий пользователя...</span>
+                    </div>
+                </div>
+
+                <div id="responseBlock" class="d-none mt-3">
+                    <label class="form-label text-secondary small fw-semibold mb-2">ТЕХНИЧЕСКИЙ ОТВЕТ СЕРВЕРА (ДЛЯ ОТЧЕТА)</label>
+                    <pre id="jsonResult" class="p-3 m-0 rounded overflow-auto"></pre>
+                </div>
+            </div>
+
+            <!-- ПРАВАЯ СТОРОНА: Кэш памяти и Постоянная База данных -->
+            <div class="d-flex flex-column gap-4">
+                
+                <!-- Блок оперативного кэша (Redis) -->
+                <div class="dashboard-block m-0">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-white mb-0">
+                            <i class="bi bi-cpu-fill me-2" style="color:#10b981;"></i> Быстрый кэш памяти (Redis)
+                        </h5>
+                        <div class="btn-group gap-2">
+                            <button id="btnFlushCache" class="btn btn-sm btn-outline-danger" title="Очистить память"><i class="bi bi-trash3"></i></button>
+                            <button id="btnLoadUsers" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-repeat me-1"></i> Загрузить команду</button>
+                        </div>
+                    </div>
+                    <div id="usersContainer">
+                        <div class="text-muted small text-center py-2">Нажмите «Загрузить команду» для получения списка сотрудников...</div>
+                    </div>
+                </div>
+
+                <!-- Блок постоянной базы данных (PostgreSQL) + ПОЛЕЗНЫЙ ФУНКЦИОНАЛ -->
+                <div class="dashboard-block m-0">
+                    <h5 class="fw-bold text-white mb-3">
+                        <i class="bi bi-database-fill me-2" style="color:#f59e0b;"></i> Постоянная база данных (PostgreSQL)
+                    </h5>
+                    
+                    <!-- ПОЛЕЗНЫЙ ФУНКЦИОНАЛ №1: Интерактивная статистика доски -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <div class="stat-box border-success-subtle text-success" style="background: rgba(16, 185, 129, 0.05);">
+                                <small class="text-secondary d-block mb-1">ВЫПОЛНЕНО</small>
+                                <span id="countDone" style="font-size: 20px;">0</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-box border-danger-subtle text-danger" style="background: rgba(239, 68, 68, 0.05);">
+                                <small class="text-secondary d-block mb-1">ОТМЕНЕНО</small>
+                                <span id="countCancelled" style="font-size: 20px;">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ПОЛЕЗНЫЙ ФУНКЦИОНАЛ №2: Быстрый фильтр задач по проектам -->
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-semibold mb-2">ФИЛЬТР КАНБАН-ДОСКИ ПО ПРОЕКТАМ</label>
+                        <select class="form-select" id="filterProject">
+                            <option value="all">📁 Показать все проекты системы</option>
+                            <option value="CRM Система">CRM Система (Alpha)</option>
+                            <option value="Мобильное приложение">Мобильное приложение (Beta)</option>
+                        </select>
+                    </div>
+
+                    <div id="tasksTableBody">
+                        <div id="emptyRow" class="text-muted small text-center py-4" style="border: 1px dashed #374151; border-radius: 8px;">
+                            <i class="bi bi-folder-x d-block mb-1" style="font-size:1.5rem;"></i>
+                            Доска задач пуста. Создайте задачу в левой панели.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <script>
-        document.getElementById('taskForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const titleInput = document.getElementById('taskTitle').value;
-            const scenario = document.getElementById('scenarioType').value;
-            const statusAlert = document.getElementById('statusAlert');
-            const responseBlock = document.getElementById('responseBlock');
-            const jsonResult = document.getElementById('jsonResult');
-
-            statusAlert.className = "status-badge status-wait";
-            statusAlert.innerHTML = `<div class="spinner-border spinner-border-sm" role="status"></div><span>⏳ Выполнение шагов Саги: Проверка лимитов...</span>`;
-
-            const finalTitle = scenario === 'fail' ? 'bad_task' : titleInput;
-
-            try {
-                const response = await fetch('/tasks/process-saga', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: finalTitle, userId: 1 })
-                });
-
-                const result = await response.json();
-                
-                responseBlock.classList.remove('d-none');
-                jsonResult.innerText = JSON.stringify(result, null, 2);
-
-                if (response.ok) {
-                    statusAlert.className = "status-badge status-success";
-                    statusAlert.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>Процесс завершен! Статус в БД: <b>Done</b></span>`;
-                } else {
-                    statusAlert.className = "status-badge status-fail";
-                    statusAlert.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i><span>Сага отработала откат (Compensated). Причина: ${result.reason}</span>`;
-                }
-            } catch (err) {
-                statusAlert.className = "status-badge status-fail";
-                statusAlert.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Критическая ошибка сети</span>`;
-            }
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
