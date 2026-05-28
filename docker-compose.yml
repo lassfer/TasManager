@@ -12,10 +12,10 @@ services:
     ports:
       - "5002:5002"
 
-  tasktracker-comments:
-    build: ./TaskTracker.Comments
-    ports:
-      - "5003:5003"
+  #tasktracker-comments:
+    #build: ./TaskTracker.Comments
+    #ports:
+    #  - "5003:5003"
 
   postgres:
     image: postgres

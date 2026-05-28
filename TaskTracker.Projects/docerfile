@@ -1,0 +1,13 @@
+FROM ://microsoft.com AS build
+WORKDIR /src
+COPY ["TaskTracker.Projects/TaskTracker.Projects.csproj", "TaskTracker.Projects/"]
+RUN dotnet restore "TaskTracker.Projects/TaskTracker.Projects.csproj"
+COPY . .
+WORKDIR "/src/TaskTracker.Projects"
+RUN dotnet publish "TaskTracker.Projects.csproj" -c Release -o /app/publish
+
+FROM ://microsoft.com
+WORKDIR /app
+COPY --from=build /app/publish .
+EXPOSE 5003
+ENTRYPOINT ["dotnet", "TaskTracker.Projects.dll"]
