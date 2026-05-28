@@ -1,21 +1,24 @@
 version: '3.9'
 
 services:
-
+  
   tasktracker-projects:
-    build: ./TaskTracker.Projects
-    ports:
-      - "5001:5001"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    
 
+  
   tasktracker-users:
-    build: ./TaskTracker.Users
-    ports:
-      - "5002:5002"
+    build:
+      context: ./TaskTracker.Users
+      dockerfile: Dockerfile
 
-  #tasktracker-comments:
-    #build: ./TaskTracker.Comments
-    #ports:
-    #  - "5003:5003"
+  
+  tasktracker-comments:
+    build:
+      context: ./TaskTracker.Comments
+      dockerfile: Dockerfile
 
   postgres:
     image: postgres
