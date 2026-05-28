@@ -65,4 +65,32 @@ app.post('/tasks/create-integrated', async (req, res) => {
     }
 });
 
+// Локальный справочник пользователей внутри модуля Проекты/Задачи
+let localUsersDirectory = [
+    { id: 1, username: "Иван_Разработчик" }
+];
+
+// ВЕБХУК: Сюда модуль Users присылает событие "UserCreated"
+app.post('/webhooks/user-created', (req, res) => {
+    console.log('\n[ВЕБХУК / СИНХРОНИЗАЦИЯ] Получено событие: UserCreated');
+    const { id, username } = req.body;
+    
+    if (!id || !username) {
+        return res.status(400).json({ error: "Неверные данные пользователя" });
+    }
+
+    // Обновляем локальный справочник (синхронизируем)
+    localUsersDirectory.push({ id, username });
+    console.log(`[ВЕБХУК] Пользователь ${username} успешно добавлен в локальный справочник задач!`);
+    console.log('[ВЕБХУК] Текущий справочник:', localUsersDirectory);
+
+    res.status(200).json({ status: "Synchronized" });
+});
+
+// Эндпоинт для просмотра синхронизированных данных (для демонстрации прелоду)
+app.get('/tasks/users-directory', (req, res) => {
+    res.json(localUsersDirectory);
+});
+
+
 app.listen(PORT, () => console.log(`[ИНФО] Сервер-оркестратор Task Tracker запущен на порту ${PORT}`));
