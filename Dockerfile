@@ -1,17 +1,7 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-
+FROM node:20-alpine
 WORKDIR /app
-
+COPY package*.json ./
+RUN npm ci --only=production
 COPY . .
-
-RUN dotnet publish -c Release -o out
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-
-WORKDIR /app
-
-COPY --from=build /app/out .
-
-EXPOSE 5001
-
-ENTRYPOINT ["dotnet", "TaskTracker.Projects.dll"]
+EXPOSE 3000
+CMD ["node", "server.js"]
