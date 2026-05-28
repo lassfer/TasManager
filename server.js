@@ -91,5 +91,10 @@ app.post('/webhooks/user-created', (req, res) => {
     res.status(200).json({ status: "Synchronized" });
 });
 
-app.listen(PORT, () => logger.info(JSON.stringify({ message: `Сервер запущен на порту ${PORT}` })));
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => logger.info(JSON.stringify({ message: `Сервер запущен на порту ${PORT}` })));
+}
+
+module.exports = app; // ЭТОТ ЭКСПОРТ ОБЯЗАТЕЛЕН ДЛЯ ТЕСТОВ
+
 
