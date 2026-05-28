@@ -1,0 +1,13 @@
+### 1. Симулируем создание нового Исполнителя (Вызов Вебхука)
+POST http://localhost:5003/webhooks/user-created
+Content-Type: application/json
+
+{
+  "id": 42,
+  "username": "Petr_QA_Engineer"
+}
+
+###
+
+### 2. Проверяем, что Исполнитель стал доступен в Задаче
+GET http://localhost:5003/tasks/users-directory

@@ -1,35 +1,58 @@
-version: '3.9'
+version: '3.8'
 
 services:
-  
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: tasktracker-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: root_password
+      POSTGRES_DB: tasktracker
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
   tasktracker-projects:
     build:
       context: .
       dockerfile: Dockerfile
-    
+    container_name: tasktracker-projects
+    ports:
+      - "5003:5003"
+    environment:
+      - DATABASE_URL=postgres://admin:root_password@postgres-db:5432/tasktracker
+    depends_on:
+      - postgres-db
+    restart: always
 
-  
   tasktracker-users:
     build:
       context: ./TaskTracker.Users
       dockerfile: Dockerfile
+    container_name: tasktracker-users
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgres://admin:root_password@postgres-db:5432/tasktracker
+    depends_on:
+      - postgres-db
+    restart: always
 
-  
+
   tasktracker-comments:
     build:
       context: ./TaskTracker.Comments
       dockerfile: Dockerfile
-
-  postgres:
-    image: postgres
+    container_name: tasktracker-comments
+    ports:
+      - "5002:5002"
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: taskdb
-    ports:
-      - "5432:5432"
+      - DATABASE_URL=postgres://admin:root_password@postgres-db:5432/tasktracker
+    depends_on:
+      - postgres-db
+    restart: always
 
-  redis:
-    image: redis
-    ports:
-      - "6379:6379"
+volumes:
+  pgdata:
