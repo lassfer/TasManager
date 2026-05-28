@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Tracker UI - Этап 8</title>
+    <link href="https://jsdelivr.net" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5" style="max-width: 600px;">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0 text-center">Управление задачами (Saga Orchestrator)</h3>
+            </div>
+            <div class="card-body">
+                <form id="taskForm">
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label">Название задачи</label>
+                        <input type="text" class="form-content form-control" id="taskTitle" value="Реализовать этап 8 лабораторной" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="scenarioType" class="form-label">Сценарий сквозного процесса</label>
+                        <select class="form-select" id="scenarioType">
+                            <option value="success">Успешный сценарий (New → In Progress → Done)</option>
+                            <option value="fail">Сбойный сценарий (Вызов отката Саги / Cancelled)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Запустить сквозной процесс</button>
+                </form>
+
+                <hr>
+
+                <h5>Статус интеграции в реальном времени:</h5>
+                <div id="statusAlert" class="alert alert-secondary text-center" role="alert">
+                    Ожидание запуска процесса...
+                </div>
+
+                <div id="responseBlock" class="d-none">
+                    <h6>Ответ сервера:</h6>
+                    <pre id="jsonResult" class="bg-dark text-light p-3 rounded" style="font-size: 13px;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const titleInput = document.getElementById('taskTitle').value;
+            const scenario = document.getElementById('scenarioType').value;
+            const statusAlert = document.getElementById('statusAlert');
+            const responseBlock = document.getElementById('responseBlock');
+            const jsonResult = document.getElementById('jsonResult');
+
+            // Устанавливаем статус начала процесса
+            statusAlert.className = "alert alert-warning text-center";
+            statusAlert.innerText = "⏳ Процесс запущен: Проверка лимитов и создание задачи...";
+
+            // Если выбран сбой, принудительно шлем bad_task для триггера Саги
+            const finalTitle = scenario === 'fail' ? 'bad_task' : titleInput;
+
+            try {
+                const response = await fetch('/tasks/process-saga', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: finalTitle, userId: 1 })
+                });
+
+                const result = await response.json();
+                
+                responseBlock.classList.remove('d-none');
+                jsonResult.innerText = JSON.stringify(result, null, 2);
+
+                if (response.ok) {
+                    statusAlert.className = "alert alert-success text-center";
+                    statusAlert.innerText = "✅ Задача успешно оформлена! Статус: Done";
+                } else {
+                    statusAlert.className = "alert alert-danger text-center";
+                    statusAlert.innerText = `❌ Сбой процесса! Сага выполнила компенсацию. Причина: ${result.reason}`;
+                }
+            } catch (err) {
+                statusAlert.className = "alert alert-danger text-center";
+                statusAlert.innerText = "💥 Ошибка отправки AJAX-запроса!";
+            }
+        });
+    </script>
+</body>
+</html>
