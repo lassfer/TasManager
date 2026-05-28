@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0
+
+    - name: Restore
+      run: dotnet restore TaskTracker.Projects
+
+    - name: Build
+      run: dotnet build TaskTracker.Projects --no-restore
+
+    - name: Lint
+      run: dotnet format TaskTracker.Projects --verify-no-changes
+
+    - name: Docker Compose Up
+      run: docker compose up -d
+
+    - name: Docker Build Projects
+      run: docker build -t tasktracker-projects ./TaskTracker.Projects
+
+    - name: Docker Build Users
+      run: docker build -t tasktracker-users ./TaskTracker.Users
+
+    - name: Docker Build Comments
+      run: docker build -t tasktracker-comments ./TaskTracker.Comments
