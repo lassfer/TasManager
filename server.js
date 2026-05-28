@@ -5,92 +5,88 @@ app.use(express.json());
 
 const PORT = 5003;
 
-// Адреса других ваших микросервисов в Docker-сети
-const USERS_URL = 'http://tasktracker-users:8080/users';
-const COMMENTS_URL = 'http://tasktracker-comments:5002/comments/add';
+// Машина состояний (UML State Machine)
+const TaskStatus = {
+    NEW: 'New',
+    IN_PROGRESS: 'In Progress',
+    DONE: 'Done',
+    CANCELLED: 'Cancelled'
+};
 
-// ТРАНСФОРМАЦИЯ ДАННЫХ (Аналог AutoMapper из C#)
-// Преобразуем данные созданной задачи и юзера в системный комментарий
-function mapTaskToSystemComment(task, user) {
-    console.log(`[МАППИНГ] Трансформация: Task #${task.id} + User #${user.id} => SystemComment`);
-    return {
-        taskId: task.id,
-        text: `Системное уведомление: Задача "${task.title}" успешно назначена на исполнителя ${user.username || 'Иван_Разработчик'}. Статус: [Новая]`,
-        timestamp: new Date().toISOString()
-    };
-}
+// Имитация базы данных задач для демонстрации
+let tasksDb = [];
 
-// ИНТЕГРАЦИОННЫЙ ЭНДПОИНТ (Сам оркестратор)
-app.post('/tasks/create-integrated', async (req, res) => {
-    console.log('\n[СЕРИЛОГ / ИНФО] --- Старт интеграции: Создание новой задачи ---');
+// Сквозной эндпоинт (Паттерн Сага / Оркестрация)
+app.post('/tasks/process-saga', async (req, res) => {
+    console.log('\n[САГА / ИНФО] >>> Запуск сквозного сценария создания задачи');
+    const { title, userId } = req.body;
     
-    const { title, description, assignedUserId } = req.body;
+    let createdTaskId = null;
 
     try {
-        // Шаг 1: Имитируем создание задачи в текущем модуле (Проекты)
-        const newTask = { 
-            id: Math.floor(Math.random() * 1000), 
-            title: title || "Тестовая задача", 
-            description: description || "Описание" 
+        // ЭТАП 7.2: Проверка бизнес-правила (Проверка лимита/остатка задач у юзера)
+        console.log(`[САГА / ШАГ 1] Проверка загруженности пользователя ID: ${userId}`);
+        const userTasksCount = 4; // Имитируем, что у юзера уже есть 4 задачи
+        if (userTasksCount >= 5) {
+            throw new Error("Превышен лимит задач для данного исполнителя (макс. 5)!");
+        }
+        console.log(`[САГА] Проверка пройдена успешно. Пользователь доступен.`);
+
+        // ЭТАП 7.1 & 7.4: Создание задачи в статусе NEW
+        const newTask = {
+            id: Math.floor(Math.random() * 1000) + 1,
+            title: title || "Сквозная задача тестирования",
+            userId: userId,
+            status: TaskStatus.NEW
         };
-        console.log(`[СЕРИЛОГ / ИНФО] Шаг 1: Задача успешно создана. ID: ${newTask.id}`);
+        tasksDb.push(newTask);
+        createdTaskId = newTask.id;
+        console.log(`[САГА / ШАГ 2] Задача #${createdTaskId} успешно создана в статусе: [${newTask.status}]`);
 
-        // Шаг 2: Вызов модуля Б (Users) через HTTP-запрос для проверки исполнителя
-        console.log(`[СЕРИЛОГ / ИНФО] Шаг 2: Запрос к Users API -> ${USERS_URL}/${assignedUserId || 1}`);
-        const userRes = await axios.get(`${USERS_URL}/${assignedUserId || 1}`)
-            .catch(() => ({ data: { id: assignedUserId || 1, username: "Иван_Разработчик" } }));
+        // Смена статуса: NEW -> IN_PROGRESS
+        newTask.status = TaskStatus.IN_PROGRESS;
+        console.log(`[САГА / ШАГ 3] Смена статуса State Machine: [New] -> [${newTask.status}]`);
+
+        // Имитируем отправку в модуль Б (Users), что юзер взял задачу
+        console.log(`[САГА / ШАГ 4] HttpClient уведомляет модуль Users о назначении задачи...`);
+
+        // ЭТАП 7.3: Реализация транзакционности (Симулируем сбой для демонстрации Саги)
+        console.log(`[САГА / ШАГ 5] Попытка отправить системный лог в модуль Comments...`);
         
-        const userData = userRes.data;
-        console.log(`[СЕРИЛОГ / ИНФО] Данные исполнителя получены:`, userData);
+        // Специально провоцируем ошибку, если передали "bad_task", чтобы показать компенсацию
+        if (title === "bad_task") {
+            throw new Error("Ошибка связи с модулем Comments API!");
+        }
 
-        // Шаг 3: Маппинг (Трансформация данных перед отправкой в следующий модуль)
-        const systemComment = mapTaskToSystemComment(newTask, userData);
+        // Финальная смена статуса: IN_PROGRESS -> DONE
+        newTask.status = TaskStatus.DONE;
+        console.log(`[САГА / ШАГ 6] Сквозной процесс завершен. Статус State Machine: [${newTask.status}]`);
 
-        // Шаг 4: Вызов модуля В (Comments) — отправляем трансформированные данные дальше
-        console.log(`[СЕРИЛОГ / ИНФО] Шаг 4: Отправка системного комментария в Comments API -> ${COMMENTS_URL}`);
-        await axios.post(COMMENTS_URL, systemComment).catch(() => console.log('[СЕРИЛОГ / ИНФО] Симуляция: Комментарий успешно сохранен.'));
-
-        // Возвращаем итоговый успешный ответ
         res.json({
-            status: "Success",
-            message: "Интеграция выполнена успешно",
-            task: newTask,
-            assignedTo: userData,
-            historyLog: systemComment
+            sagaStatus: "Success",
+            message: "Сквозной процесс успешно выполнен до конца",
+            task: newTask
         });
 
     } catch (error) {
-        console.error('[СЕРИЛОГ / ОШИБКА] Сбой в работе оркестратора:', error.message);
-        res.status(500).json({ error: error.message });
+        console.error(`\n[САГА / АЛАРМ] Сбой на одном из шагов: ${error.message}`);
+        
+        // ЭТАП 7.3: Компенсирующее действие (Откат транзакции / Перевод в Cancelled)
+        if (createdTaskId) {
+            console.log(`[САГА / КОМПЕНСАЦИЯ] Начинаем откат транзакции для задачи #${createdTaskId}...`);
+            const task = tasksDb.find(t => t.id === createdTaskId);
+            if (task) {
+                task.status = TaskStatus.CANCELLED;
+                console.log(`[САГА / КОМПЕНСАЦИЯ] Задача #${createdTaskId} успешно отменена. Статус: [${task.status}]`);
+            }
+        }
+        
+        res.status(400).json({
+            sagaStatus: "Compensated / Rolled Back",
+            reason: error.message,
+            taskId: createdTaskId
+        });
     }
 });
 
-// Локальный справочник пользователей внутри модуля Проекты/Задачи
-let localUsersDirectory = [
-    { id: 1, username: "Иван_Разработчик" }
-];
-
-// ВЕБХУК: Сюда модуль Users присылает событие "UserCreated"
-app.post('/webhooks/user-created', (req, res) => {
-    console.log('\n[ВЕБХУК / СИНХРОНИЗАЦИЯ] Получено событие: UserCreated');
-    const { id, username } = req.body;
-    
-    if (!id || !username) {
-        return res.status(400).json({ error: "Неверные данные пользователя" });
-    }
-
-    // Обновляем локальный справочник (синхронизируем)
-    localUsersDirectory.push({ id, username });
-    console.log(`[ВЕБХУК] Пользователь ${username} успешно добавлен в локальный справочник задач!`);
-    console.log('[ВЕБХУК] Текущий справочник:', localUsersDirectory);
-
-    res.status(200).json({ status: "Synchronized" });
-});
-
-// Эндпоинт для просмотра синхронизированных данных (для демонстрации прелоду)
-app.get('/tasks/users-directory', (req, res) => {
-    res.json(localUsersDirectory);
-});
-
-
-app.listen(PORT, () => console.log(`[ИНФО] Сервер-оркестратор Task Tracker запущен на порту ${PORT}`));
+app.listen(PORT, () => console.log(`[ИНФО] Сервер Этапа 7 запущен на порту ${PORT}`));
