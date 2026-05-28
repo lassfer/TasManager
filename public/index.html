@@ -3,43 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Tracker UI - Этап 8</title>
+    <title>Task Tracker Pro UI</title>
+    <!-- Шрифты и иконки -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <link rel="stylesheet" href="https://jsdelivr.net">
     <link href="https://jsdelivr.net" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .premium-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 550px; /* Жестко ограничиваем ширину, чтобы не растягивалось на весь экран */
+            padding: 30px;
+        }
+        .form-control, .form-select {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #1f2937;
+            border-color: #6366f1;
+            color: #ffffff;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 14px;
+            transition: all 0.2s ease;
+        }
+        .btn-gradient:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+        .status-badge {
+            border-radius: 12px;
+            padding: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid transparent;
+        }
+        .status-idle { background: #1f2937; border-color: #374151; color: #9ca3af; }
+        .status-wait { background: rgba(245, 158, 11, 0.1); border-color: #f59e0b; color: #fbbf24; }
+        .status-success { background: rgba(16, 185, 129, 0.1); border-color: #10b981; color: #34d399; }
+        .status-fail { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; color: #f87171; }
+        pre {
+            background-color: #030712 !important;
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            max-height: 200px;
+            font-size: 13px;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container mt-5" style="max-width: 600px;">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h3 class="card-title mb-0 text-center">Управление задачами (Saga Orchestrator)</h3>
+<body>
+
+    <div class="premium-card">
+        <!-- Шапка панели -->
+        <div class="text-center mb-4">
+            <div class="d-inline-flex p-3 rounded-circle mb-3" style="background: rgba(99, 102, 241, 0.1);">
+                <i class="bi bi-cpu" style="font-size: 2rem; color: #818cf8;"></i>
             </div>
-            <div class="card-body">
-                <form id="taskForm">
-                    <div class="mb-3">
-                        <label for="taskTitle" class="form-label">Название задачи</label>
-                        <input type="text" class="form-content form-control" id="taskTitle" value="Реализовать этап 8 лабораторной" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="scenarioType" class="form-label">Сценарий сквозного процесса</label>
-                        <select class="form-select" id="scenarioType">
-                            <option value="success">Успешный сценарий (New → In Progress → Done)</option>
-                            <option value="fail">Сбойный сценарий (Вызов отката Саги / Cancelled)</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">Запустить сквозной процесс</button>
-                </form>
+            <h3 class="fw-bold text-white mb-1">Task Tracker Pro</h3>
+            <p class="text-muted small mb-0">Интеграционный слой управления оркестрацией (Saga)</p>
+        </div>
 
-                <hr>
-
-                <h5>Статус интеграции в реальном времени:</h5>
-                <div id="statusAlert" class="alert alert-secondary text-center" role="alert">
-                    Ожидание запуска процесса...
-                </div>
-
-                <div id="responseBlock" class="d-none">
-                    <h6>Ответ сервера:</h6>
-                    <pre id="jsonResult" class="bg-dark text-light p-3 rounded" style="font-size: 13px;"></pre>
-                </div>
+        <!-- Форма команд -->
+        <form id="taskForm" class="mb-4">
+            <div class="mb-3">
+                <label class="form-label text-secondary small fw-semibold">НАЗВАНИЕ НОВОЙ ЗАДАЧИ</label>
+                <input type="text" class="form-control" id="taskTitle" value="Реализовать этап 8 лабораторной" required>
             </div>
+            <div class="mb-4">
+                <label class="form-label text-secondary small fw-semibold">РЕЖИМ СКВОЗНОГО ПРОЦЕССА</label>
+                <select class="form-select" id="scenarioType">
+                    <option value="success">💎 Успешный сценарий (New → In Progress → Done)</option>
+                    <option value="fail">⚠️ Сбойный сценарий (Вызов отката Саги / Cancelled)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-gradient w-100">
+                <i class="bi bi-play-fill me-1"></i> Запустить оркестрацию
+            </button>
+        </form>
+
+        <!-- Мониторинг статуса -->
+        <div class="mb-4">
+            <label class="form-label text-secondary small fw-semibold mb-2">МОНИТОРИНГ ИНТЕГРАЦИИ</label>
+            <div id="statusAlert" class="status-badge status-idle">
+                <i class="bi bi-hourglass-split"></i>
+                <span>Система готова к приему команд...</span>
+            </div>
+        </div>
+
+        <!-- Вывод JSON -->
+        <div id="responseBlock" class="d-none">
+            <label class="form-label text-secondary small fw-semibold mb-2">ОТВЕТ СЕРВЕРА (JSON RESULT)</label>
+            <pre id="jsonResult" class="text-info p-3 m-0 rounded overflow-auto" style="color: #38bdf8 !important;"></pre>
         </div>
     </div>
 
@@ -53,11 +133,9 @@
             const responseBlock = document.getElementById('responseBlock');
             const jsonResult = document.getElementById('jsonResult');
 
-            // Устанавливаем статус начала процесса
-            statusAlert.className = "alert alert-warning text-center";
-            statusAlert.innerText = "⏳ Процесс запущен: Проверка лимитов и создание задачи...";
+            statusAlert.className = "status-badge status-wait";
+            statusAlert.innerHTML = `<div class="spinner-border spinner-border-sm" role="status"></div><span>⏳ Выполнение шагов Саги: Проверка лимитов...</span>`;
 
-            // Если выбран сбой, принудительно шлем bad_task для триггера Саги
             const finalTitle = scenario === 'fail' ? 'bad_task' : titleInput;
 
             try {
@@ -73,15 +151,15 @@
                 jsonResult.innerText = JSON.stringify(result, null, 2);
 
                 if (response.ok) {
-                    statusAlert.className = "alert alert-success text-center";
-                    statusAlert.innerText = "✅ Задача успешно оформлена! Статус: Done";
+                    statusAlert.className = "status-badge status-success";
+                    statusAlert.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>Процесс завершен! Статус в БД: <b>Done</b></span>`;
                 } else {
-                    statusAlert.className = "alert alert-danger text-center";
-                    statusAlert.innerText = `❌ Сбой процесса! Сага выполнила компенсацию. Причина: ${result.reason}`;
+                    statusAlert.className = "status-badge status-fail";
+                    statusAlert.innerHTML = `<i class="bi bi-exclamation-triangle-fill"></i><span>Сага отработала откат (Compensated). Причина: ${result.reason}</span>`;
                 }
             } catch (err) {
-                statusAlert.className = "alert alert-danger text-center";
-                statusAlert.innerText = "💥 Ошибка отправки AJAX-запроса!";
+                statusAlert.className = "status-badge status-fail";
+                statusAlert.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Критическая ошибка сети</span>`;
             }
         });
     </script>
